@@ -8,11 +8,13 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-      - "67:67/udp"
+      # - "67:67/udp"/
       - "80:80/tcp"
       - "443:443/tcp"
     environment:
       TZ: 'America/Chicago'
+      DNS1: '127.0.0.1#5053'
+      DNS2: '127.0.0.1#5053'
       # WEBPASSWORD: 'set a secure password here or it will be random'
     # Volumes store your data between container upgrades
     volumes:
@@ -23,3 +25,21 @@ services:
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
+    networks:
+      - unbound-pihole
+
+  unbound:
+    image: klutchell/unbound
+    ports:
+      - '5053:5053/udp'
+      - '5053:5053/tcp'
+    volumes:
+      - './unbound/:/etc/unbound/'
+    networks:
+      - unbound-pihole
+    cap_add:
+      - NET_ADMIN
+      
+networks:
+  unbound-pihole:
+    driver: bridge
