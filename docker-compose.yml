@@ -1,10 +1,35 @@
 version: "3"
 
+networks: 
+  default: 
+    driver: bridge
+    ipam: 
+      config: 
+        - subnet: 172.27.0.0/16
+        # - gateway: "172.19.0.1"
+    
+
 # More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
 services:
+  unbound:
+    image: klutchell/unbound
+    networks: 
+      default:
+        ipv4_address: "172.27.0.2"
+    ports:
+      - '5053:5053/udp'
+      - '5053:5053/tcp'
+    volumes:
+      - './unbound/:/etc/unbound/'
+    restart: unless-stopped
+
+    
   pihole:
     container_name: pihole
     image: pihole/pihole:latest
+    networks: 
+      default:
+        ipv4_address: "172.27.0.3"
     ports:
       - "53:53/tcp"
       - "53:53/udp"
@@ -13,8 +38,8 @@ services:
       - "443:443/tcp"
     environment:
       TZ: 'America/Chicago'
-      DNS1: '127.0.0.1#5053'
-      DNS2: '127.0.0.1#5053'
+      DNS1: "172.27.0.2#5053"
+      DNS2: "172.27.0.2#5053"
       # WEBPASSWORD: 'set a secure password here or it will be random'
     # Volumes store your data between container upgrades
     volumes:
@@ -22,24 +47,6 @@ services:
       - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
     # Recommended but not required (DHCP needs NET_ADMIN)
     #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
-    cap_add:
-      - NET_ADMIN
+    # cap_add:
+    #   - NET_ADMIN
     restart: unless-stopped
-    networks:
-      - unbound-pihole
-
-  unbound:
-    image: klutchell/unbound
-    ports:
-      - '5053:5053/udp'
-      - '5053:5053/tcp'
-    volumes:
-      - './unbound/:/etc/unbound/'
-    networks:
-      - unbound-pihole
-    cap_add:
-      - NET_ADMIN
-      
-networks:
-  unbound-pihole:
-    driver: bridge
