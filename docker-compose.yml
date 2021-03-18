@@ -6,8 +6,6 @@ networks:
     ipam: 
       config: 
         - subnet: 172.27.0.0/16
-        # - gateway: "172.19.0.1"
-    
 
 # More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
 services:
